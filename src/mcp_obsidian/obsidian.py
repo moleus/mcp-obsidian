@@ -267,7 +267,7 @@ class Obsidian():
         Returns:
             Content of the periodic note
         """
-        url = f"{self.get_base_url()}/periodic/{year}/{month}/{day}/{period}/"
+        url = f"{self.get_base_url()}/periodic/{year}/{month}/{day}/"
         def call_fn():
             headers = self._get_headers()
             if type == "metadata":
@@ -279,7 +279,7 @@ class Obsidian():
 
     def patch_periodic_note_for_date(self, year: int, month: int, day: int, period: str, operation: str, target_type: str, target: str, content: str) -> Any:
         """Partially update content in the periodic note for the specified period and date."""
-        url = f"{self.get_base_url()}/periodic/{year}/{month}/{day}/{period}/"
+        url = f"{self.get_base_url()}/periodic/{period}/{year}/{month}/{day}/"
         headers = self._get_headers() | {
             'Content-Type': 'text/markdown',
             'Operation': operation,
@@ -294,7 +294,7 @@ class Obsidian():
 
     def append_periodic_note_for_date(self, year: int, month: int, day: int, period: str, content: str) -> Any:
         """Append content to the periodic note for the specified period and date."""
-        url = f"{self.get_base_url()}/periodic/{year}/{month}/{day}/{period}/"
+        url = f"{self.get_base_url()}/periodic/{period}/{year}/{month}/{day}/"
         def call_fn():
             response = requests.post(
                 url,
@@ -309,7 +309,7 @@ class Obsidian():
 
     def put_periodic_note_for_date(self, year: int, month: int, day: int, period: str, content: str) -> Any:
         """Update the content of the periodic note for the specified period and date."""
-        url = f"{self.get_base_url()}/periodic/{year}/{month}/{day}/{period}/"
+        url = f"{self.get_base_url()}/periodic/{period}/{year}/{month}/{day}/"
         def call_fn():
             response = requests.put(
                 url,

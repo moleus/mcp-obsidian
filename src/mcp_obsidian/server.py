@@ -87,6 +87,8 @@ async def main():
     # Import here to avoid issues with event loops
     from mcp.server.stdio import stdio_server
 
+    logger.info("Starting MCP Obsidian server...")
+
     async with stdio_server() as (read_stream, write_stream):
         await app.run(
             read_stream,
