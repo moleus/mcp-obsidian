@@ -1,16 +1,15 @@
-import json
 import logging
-from collections.abc import Sequence
-from functools import lru_cache
-from typing import Any
 import os
+from collections.abc import Sequence
+from typing import Any
+
 from dotenv import load_dotenv
 from mcp.server import Server
 from mcp.types import (
-    Tool,
-    TextContent,
-    ImageContent,
     EmbeddedResource,
+    ImageContent,
+    TextContent,
+    Tool,
 )
 
 load_dotenv()
@@ -47,12 +46,16 @@ add_tool_handler(tools.GetFileContentsToolHandler())
 add_tool_handler(tools.SearchToolHandler())
 add_tool_handler(tools.PatchContentToolHandler())
 add_tool_handler(tools.AppendContentToolHandler())
+add_tool_handler(tools.PutContentToolHandler())
 add_tool_handler(tools.DeleteFileToolHandler())
 add_tool_handler(tools.ComplexSearchToolHandler())
 add_tool_handler(tools.BatchGetFileContentsToolHandler())
 add_tool_handler(tools.PeriodicNotesToolHandler())
-add_tool_handler(tools.RecentPeriodicNotesToolHandler())
 add_tool_handler(tools.RecentChangesToolHandler())
+add_tool_handler(tools.PeriodicNoteForDateGetToolHandler())
+add_tool_handler(tools.PeriodicNoteForDatePatchToolHandler())
+add_tool_handler(tools.PeriodicNoteForDatePostToolHandler())
+add_tool_handler(tools.PeriodicNoteForDatePutToolHandler())
 
 @app.list_tools()
 async def list_tools() -> list[Tool]:
@@ -83,6 +86,8 @@ async def main():
 
     # Import here to avoid issues with event loops
     from mcp.server.stdio import stdio_server
+
+    logger.info("Starting MCP Obsidian server...")
 
     async with stdio_server() as (read_stream, write_stream):
         await app.run(

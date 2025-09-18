@@ -1,7 +1,9 @@
-import requests
-import urllib.parse
 import os
+import urllib.parse
 from typing import Any
+
+import requests
+
 
 class Obsidian():
     def __init__(
@@ -140,6 +142,22 @@ class Obsidian():
             return None
 
         return self._safe_call(call_fn)
+
+    def put_content(self, filepath: str, content: str) -> Any:
+        url = f"{self.get_base_url()}/vault/{filepath}"
+        
+        def call_fn():
+            response = requests.put(
+                url, 
+                headers=self._get_headers() | {'Content-Type': 'text/markdown'}, 
+                data=content,
+                verify=self.verify_ssl,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return None
+
+        return self._safe_call(call_fn)
     
     def delete_file(self, filepath: str) -> Any:
         """Delete a file or directory from the vault.
@@ -198,37 +216,6 @@ class Obsidian():
 
         return self._safe_call(call_fn)
     
-    def get_recent_periodic_notes(self, period: str, limit: int = 5, include_content: bool = False) -> Any:
-        """Get most recent periodic notes for the specified period type.
-        
-        Args:
-            period: The period type (daily, weekly, monthly, quarterly, yearly)
-            limit: Maximum number of notes to return (default: 5)
-            include_content: Whether to include note content (default: False)
-            
-        Returns:
-            List of recent periodic notes
-        """
-        url = f"{self.get_base_url()}/periodic/{period}/recent"
-        params = {
-            "limit": limit,
-            "includeContent": include_content
-        }
-        
-        def call_fn():
-            response = requests.get(
-                url, 
-                headers=self._get_headers(), 
-                params=params,
-                verify=self.verify_ssl, 
-                timeout=self.timeout
-            )
-            response.raise_for_status()
-            
-            return response.json()
-
-        return self._safe_call(call_fn)
-    
     def get_recent_changes(self, limit: int = 10, days: int = 90) -> Any:
         """Get recently modified files in the vault.
         
@@ -267,4 +254,70 @@ class Obsidian():
             response.raise_for_status()
             return response.json()
 
+        return self._safe_call(call_fn)
+
+    def get_periodic_note_for_date(self, year: int, month: int, day: int, period: str, type: str = "content") -> Any:
+        """Get the periodic note for the specified period and date.
+        Args:
+            year: Year (e.g., 2024)
+            month: Month (1-12)
+            day: Day (1-31)
+            period: The period type (daily, weekly, monthly, quarterly, yearly)
+            type: 'content' for markdown, 'metadata' for JSON
+        Returns:
+            Content of the periodic note
+        """
+        url = f"{self.get_base_url()}/periodic/{year}/{month}/{day}/"
+        def call_fn():
+            headers = self._get_headers()
+            if type == "metadata":
+                headers['Accept'] = 'application/vnd.olrapi.note+json'
+            response = requests.get(url, headers=headers, verify=self.verify_ssl, timeout=self.timeout)
+            response.raise_for_status()
+            return response.text
+        return self._safe_call(call_fn)
+
+    def patch_periodic_note_for_date(self, year: int, month: int, day: int, period: str, operation: str, target_type: str, target: str, content: str) -> Any:
+        """Partially update content in the periodic note for the specified period and date."""
+        url = f"{self.get_base_url()}/periodic/{period}/{year}/{month}/{day}/"
+        headers = self._get_headers() | {
+            'Content-Type': 'text/markdown',
+            'Operation': operation,
+            'Target-Type': target_type,
+            'Target': urllib.parse.quote(target)
+        }
+        def call_fn():
+            response = requests.patch(url, headers=headers, data=content, verify=self.verify_ssl, timeout=self.timeout)
+            response.raise_for_status()
+            return None
+        return self._safe_call(call_fn)
+
+    def append_periodic_note_for_date(self, year: int, month: int, day: int, period: str, content: str) -> Any:
+        """Append content to the periodic note for the specified period and date."""
+        url = f"{self.get_base_url()}/periodic/{period}/{year}/{month}/{day}/"
+        def call_fn():
+            response = requests.post(
+                url,
+                headers=self._get_headers() | {'Content-Type': 'text/markdown'},
+                data=content,
+                verify=self.verify_ssl,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return None
+        return self._safe_call(call_fn)
+
+    def put_periodic_note_for_date(self, year: int, month: int, day: int, period: str, content: str) -> Any:
+        """Update the content of the periodic note for the specified period and date."""
+        url = f"{self.get_base_url()}/periodic/{period}/{year}/{month}/{day}/"
+        def call_fn():
+            response = requests.put(
+                url,
+                headers=self._get_headers() | {'Content-Type': 'text/markdown'},
+                data=content,
+                verify=self.verify_ssl,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            return None
         return self._safe_call(call_fn)
